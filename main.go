@@ -9,6 +9,7 @@ func main() {
 	files := []string{
 		// Uncomment the line with the desired files (add other lines if needed)
 		"a",
+		"b",
 		// "a", "b", "c", "d", "e", "f",
 		// "a", "b",
 		// "a", "b", "e", "f",
@@ -32,7 +33,7 @@ func main() {
 		for _, s := range servers {
 			fmt.Printf("Server End: %+v\n", s)
 		}
-		output := buildOutput(result)
+		output := buildOutput(servers)
 		printResultMetrics(result)
 
 		ioutil.WriteFile(fmt.Sprintf("./result/%s.out", fileName), []byte(output), 0644)

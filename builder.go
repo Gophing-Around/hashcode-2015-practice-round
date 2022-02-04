@@ -1,5 +1,10 @@
 package main
 
+import (
+	"fmt"
+	"strings"
+)
+
 type Config struct {
 	rows        int
 	slots       int
@@ -15,6 +20,7 @@ type Server struct {
 	assignedRow  int
 	assignedSlot int
 	assignedPool int
+	assigned     bool
 }
 
 type unavailablesMap map[string]bool
@@ -47,6 +53,15 @@ func buildInput(inputSet string) (Config, unavailablesMap, []*Server) {
 	return config, unavailbles, servers
 }
 
-func buildOutput(result int) string {
-	return "42"
+func buildOutput(servers []*Server) string {
+	result := ""
+	for _, server := range servers {
+		if server.assigned {
+			result += fmt.Sprintf("%d %d %d\n", server.assignedRow, server.assignedSlot, server.assignedPool)
+		} else {
+			result += fmt.Sprintf("x\n")
+		}
+	}
+
+	return strings.Trim(result, "\n")
 }
