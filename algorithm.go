@@ -70,41 +70,46 @@ func sortServers(initialServers []*Server) []*Server {
 		a := initialServers[i]
 		b := initialServers[j]
 
-		if a.capacity/a.size > b.capacity/b.size {
+		// if a.capacity*a.size < b.capacity*b.size {
+		if a.capacity < b.capacity {
 			return true
 		}
 		return false
 	})
-	// return initialServers
-	// initialServers = initialServers[:506]
+	return initialServers
+	// initialServers = initialServers[:500]
 
-	part1 := make([]*Server, len(initialServers)/2+1)
-	part2 := make([]*Server, len(initialServers)/2)
-	for i := 0; i < len(initialServers); i += 2 {
-		part1[i/2] = initialServers[i]
-		if (i / 2) < len(part2) {
-			part2[(i / 2)] = initialServers[i+1]
-		}
-	}
+	// part1 := make([]*Server, len(initialServers)/2) //+1)
+	// part2 := make([]*Server, len(initialServers)/2)
+	// for i := 0; i < len(initialServers); i += 2 {
+	// 	part1[i/2] = initialServers[i]
+	// 	if (i / 2) < len(part2) {
+	// 		part2[(i / 2)] = initialServers[i+1]
+	// 	}
+	// }
 
-	sort.Slice(part1, func(i, j int) bool {
-		a := part1[i]
-		b := part1[j]
+	// sort.Slice(part1, func(i, j int) bool {
+	// 	a := part1[i]
+	// 	b := part1[j]
 
-		if a.capacity/a.size > b.capacity/b.size {
-			return true
-		}
-		return false
-	})
-	sort.Slice(part2, func(i, j int) bool {
-		a := part2[i]
-		b := part2[j]
+	// 	// if a.capacity/a.size > b.capacity/b.size {
+	// 	if a.capacity < b.capacity {
 
-		if a.capacity/a.size < b.capacity/b.size {
-			return true
-		}
-		return false
-	})
-	servers := append(part1, part2...)
-	return servers
+	// 		return true
+	// 	}
+	// 	return false
+	// })
+	// sort.Slice(part2, func(i, j int) bool {
+	// 	a := part2[i]
+	// 	b := part2[j]
+
+	// 	// if a.capacity/a.size < b.capacity/b.size {
+	// 	if a.capacity > b.capacity {
+
+	// 		return true
+	// 	}
+	// 	return false
+	// })
+	// servers := append(part1, part2...)
+	// return servers
 }
