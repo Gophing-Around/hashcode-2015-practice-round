@@ -8,7 +8,7 @@ import (
 func main() {
 	files := []string{
 		// Uncomment the line with the desired files (add other lines if needed)
-		// "a",
+		"a",
 		"b",
 		// "a", "b", "c", "d", "e", "f",
 		// "a", "b",

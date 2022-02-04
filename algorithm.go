@@ -16,9 +16,11 @@ func algorithm(config Config, unMap unavailablesMap, initialServers []*Server) {
 	rows := make([]Row, config.rows)
 
 	// Assign Server
+	startRow := 0
 	for sPos := 0; sPos < len(servers); sPos++ {
 		server := servers[sPos]
-		placeServer(config, unMap, server, sPos, rows)
+		lastRow := placeServer(startRow, config, unMap, server, sPos, rows)
+		startRow = (lastRow + 1) % config.rows
 	}
 
 	// Assign pool
@@ -31,8 +33,8 @@ func algorithm(config Config, unMap unavailablesMap, initialServers []*Server) {
 	}
 }
 
-func placeServer(config Config, unMap unavailablesMap, server *Server, sPos int, rows []Row) {
-	for i := 0; i < config.rows; i++ {
+func placeServer(startRow int, config Config, unMap unavailablesMap, server *Server, sPos int, rows []Row) int {
+	for i := startRow; i < config.rows; i++ {
 		for j := 0; j < config.slots; j++ {
 			if j+server.size > config.slots {
 				break
@@ -60,9 +62,41 @@ func placeServer(config Config, unMap unavailablesMap, server *Server, sPos int,
 			for k := j; k < j+server.size && k < config.slots; k++ {
 				unMap[fmt.Sprintf("%d %d", i, k)] = true
 			}
-			return
+			return i
 		}
 	}
+	for i := 0; i <= startRow; i++ {
+		for j := 0; j < config.slots; j++ {
+			if j+server.size > config.slots {
+				break
+			}
+			canFit := true
+			for k := j; k < j+server.size && k < config.slots; k++ {
+				if ok := unMap[fmt.Sprintf("%d %d", i, k)]; ok {
+					canFit = false
+					break
+				}
+			}
+			if !canFit {
+				continue
+			}
+
+			server.assignedRow = i
+			server.assignedSlot = j
+			server.assigned = true
+
+			// Slots unavailable
+			if rows[i].servers == nil {
+				rows[i].servers = make([]*Server, 0)
+			}
+			rows[i].servers = append(rows[i].servers, server)
+			for k := j; k < j+server.size && k < config.slots; k++ {
+				unMap[fmt.Sprintf("%d %d", i, k)] = true
+			}
+			return i
+		}
+	}
+	return -1
 }
 
 func sortServers(initialServers []*Server) []*Server {
@@ -70,8 +104,8 @@ func sortServers(initialServers []*Server) []*Server {
 		a := initialServers[i]
 		b := initialServers[j]
 
-		if a.capacity/a.size > b.capacity/b.size {
-			// if a.capacity < b.capacity {
+		// if a.capacity/a.size > b.capacity/b.size {
+		if a.capacity > b.capacity {
 			return true
 		}
 		return false
