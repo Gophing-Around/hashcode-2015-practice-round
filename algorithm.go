@@ -21,16 +21,18 @@ func algorithm(config Config, unMap unavailablesMap, initialServers []*Server) {
 		server := servers[sPos]
 		lastRow := placeServer(startRow, config, unMap, server, sPos, rows)
 		startRow = (lastRow + 1) % config.rows
+
+		servers[sPos].assignedPool = sPos % config.nPools
 	}
 
-	// Assign pool
-	currentPool := 0
-	for rPos := 0; rPos < len(rows); rPos++ {
-		for sPos := 0; sPos < len(rows[rPos].servers); sPos++ {
-			rows[rPos].servers[sPos].assignedPool = currentPool % config.nPools
-			currentPool++
-		}
-	}
+	// // Assign pool
+	// currentPool := 0
+	// for rPos := 0; rPos < len(rows); rPos++ {
+	// 	for sPos := 0; sPos < len(rows[rPos].servers); sPos++ {
+	// 		rows[rPos].servers[sPos].assignedPool = currentPool % config.nPools
+	// 		currentPool++
+	// 	}
+	// }
 }
 
 func placeServer(startRow int, config Config, unMap unavailablesMap, server *Server, sPos int, rows []Row) int {
