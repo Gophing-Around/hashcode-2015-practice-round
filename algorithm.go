@@ -61,57 +61,73 @@ func nextUnavailable(currentRow, currentSlot, lenRow int, unMap unavailablesMap)
 	return lenRow
 }
 
-func placeServer(startRow int, config Config, unMap unavailablesMap, server *Server, sPos int, rows []Row) int {
-	for i := startRow; i < config.rows; i++ {
-		for j := 0; j < config.slots; j++ {
-			if j+server.size > config.slots {
-				break
-			}
-			fromHereToNextUnavailable := nextUnavailable(i, j, config.slots, unMap) - j
-			if server.size == fromHereToNextUnavailable {
-				assignRow(i, j, server, rows, unMap, config)
-				return i
-			}
-			if server.size+1 <= fromHereToNextUnavailable {
-				continue
-			}
+func findRow(rows []Row, curretnServer *Server, sPos int, config Config, unMap unavailablesMap) int {
+	selectedRow := 0
+	minCap := 99999999
+	for i := 0; i < len(rows); i++ {
+		rowCapacity := 0
+		for _, server := range rows[i].servers {
+			rowCapacity += server.capacity
+		}
 
-			canFit := true
-			for k := j; k < j+server.size && k < config.slots; k++ {
-				if ok := unMap[fmt.Sprintf("%d %d", i, k)]; ok {
-					canFit = false
-					break
-				}
-			}
-			if !canFit {
-				continue
-			}
-
-			assignRow(i, j, server, rows, unMap, config)
-			return i
+		slot := findSlot(i, config, unMap, curretnServer, sPos, rows)
+		if rowCapacity < minCap && slot != -1 {
+			minCap = rowCapacity
+			selectedRow = i
 		}
 	}
-	for i := 0; i <= startRow; i++ {
-		for j := 0; j < config.slots; j++ {
-			if j+server.size > config.slots {
-				break
-			}
-			canFit := true
-			for k := j; k < j+server.size && k < config.slots; k++ {
-				if ok := unMap[fmt.Sprintf("%d %d", i, k)]; ok {
-					canFit = false
-					break
-				}
-			}
-			if !canFit {
-				continue
-			}
+	return selectedRow
+}
 
-			assignRow(i, j, server, rows, unMap, config)
-			return i
-		}
+func placeServer(startRow int, config Config, unMap unavailablesMap, server *Server, sPos int, rows []Row) int {
+	bestRow := findRow(rows, server, sPos, config, unMap)
+	slot := findSlot(bestRow, config, unMap, server, sPos, rows)
+	if slot != -1 {
+		assignRow(bestRow, slot, server, rows, unMap, config)
+		return bestRow
 	}
 	return -1
+
+	// for i := startRow; i < config.rows; i++ {
+	// 	j := findSlot(i, config, unMap, server, sPos, rows)
+	// 	if j == -1 {
+	// 		continue
+	// 	}
+
+	// 	assignRow(i, j, server, rows, unMap, config)
+	// 	return i
+	// }
+
+	// for i := 0; i <= startRow; i++ {
+	// 	j := findSlot(i, config, unMap, server, sPos, rows)
+	// 	if j == -1 {
+	// 		continue
+	// 	}
+
+	// 	assignRow(i, j, server, rows, unMap, config)
+	// 	return i
+	// }
+	// return -1
+}
+
+func findSlot(i int, config Config, unMap unavailablesMap, server *Server, sPos int, rows []Row) int {
+	max := server.size
+	currentPos := -1
+	for j := 0; j < config.slots; j++ {
+		if j+server.size > config.slots {
+			break
+		}
+		fromHereToNextUnavailable := nextUnavailable(i, j, config.slots, unMap) - j
+		if server.size == fromHereToNextUnavailable {
+			return j
+		}
+		if fromHereToNextUnavailable > max {
+			currentPos = j
+			max = fromHereToNextUnavailable
+		}
+	}
+
+	return currentPos
 }
 
 func assignRow(i, j int, server *Server, rows []Row, unMap unavailablesMap, config Config) {
