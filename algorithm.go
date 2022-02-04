@@ -5,19 +5,16 @@ import (
 	"sort"
 )
 
-func algorithm(config Config, unMap unavailablesMap, servers []*Server) {
+type Row struct {
+	servers []*Server
+}
 
-	sort.Slice(servers, func(i, j int) bool {
-		a := servers[i]
-		b := servers[j]
+func algorithm(config Config, unMap unavailablesMap, initialServers []*Server) {
 
-		if a.capacity/a.size > b.capacity/b.size {
-			return true
-		}
-		return false
-	})
+	servers := sortServers(initialServers)
 
 	rows := make([]Row, config.rows)
+
 	// Assign Server
 	for sPos := 0; sPos < len(servers); sPos++ {
 		server := servers[sPos]
@@ -32,10 +29,6 @@ func algorithm(config Config, unMap unavailablesMap, servers []*Server) {
 			currentPool++
 		}
 	}
-}
-
-type Row struct {
-	servers []*Server
 }
 
 func placeServer(config Config, unMap unavailablesMap, server *Server, sPos int, rows []Row) {
@@ -70,4 +63,49 @@ func placeServer(config Config, unMap unavailablesMap, server *Server, sPos int,
 			return
 		}
 	}
+}
+
+func sortServers(initialServers []*Server) []*Server {
+	sort.Slice(initialServers, func(i, j int) bool {
+		a := initialServers[i]
+		b := initialServers[j]
+
+		if a.capacity/a.size > b.capacity/b.size {
+			return true
+		}
+		return false
+	})
+
+	// part1 := servers[:len(servers)/2]
+	// part2 := servers[len(servers)/2:]
+
+	part1 := make([]*Server, len(initialServers)/2+1)
+	part2 := make([]*Server, len(initialServers)/2)
+	for i := 0; i < len(initialServers); i += 2 {
+		part1[i/2] = initialServers[i]
+		if (i / 2) < len(part2) {
+			part2[(i / 2)] = initialServers[i+1]
+		}
+	}
+
+	sort.Slice(part1, func(i, j int) bool {
+		a := part1[i]
+		b := part1[j]
+
+		if a.capacity/a.size > b.capacity/b.size {
+			return true
+		}
+		return false
+	})
+	sort.Slice(part2, func(i, j int) bool {
+		a := part2[i]
+		b := part2[j]
+
+		if a.capacity/a.size < b.capacity/b.size {
+			return true
+		}
+		return false
+	})
+	servers := append(part1, part2...)
+	return servers
 }
