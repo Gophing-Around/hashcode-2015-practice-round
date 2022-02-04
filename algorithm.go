@@ -15,23 +15,17 @@ func algorithm(config Config, unMap unavailablesMap, servers []*Server) int {
 }
 
 func placeServer(config Config, unMap unavailablesMap, server *Server, sPos int) {
-
 	for i := 0; i < config.rows; i++ {
 		for j := 0; j < config.slots; j++ {
-			// funziona?
-
-			// è occupato
-
-			// ho spazio negli slot successivi rispetto a size
+			if j+server.size > config.slots {
+				break
+			}
 			canFit := true
 			for k := j; k < j+server.size && k < config.slots; k++ {
 				if ok := unMap[fmt.Sprintf("%d %d", i, k)]; ok {
 					canFit = false
 					break
 				}
-				// if ok := occupiedMap[fmt.Sprintf("%d %d", i, k)]; ok {
-				// 	break
-				// }
 			}
 			if !canFit {
 				continue
@@ -39,7 +33,7 @@ func placeServer(config Config, unMap unavailablesMap, server *Server, sPos int)
 
 			server.assignedRow = i
 			server.assignedSlot = j
-			server.assignedPool = 0
+			server.assignedPool = 1
 
 			// Slots unavailable
 			fmt.Printf("BEFORE ITERATING FOR SERVER %d - %+v\n", sPos, unMap)
@@ -49,7 +43,6 @@ func placeServer(config Config, unMap unavailablesMap, server *Server, sPos int)
 				unMap[fmt.Sprintf("%d %d", i, k)] = true
 			}
 			return
-			// j+=server.size
 		}
 	}
 }
