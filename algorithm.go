@@ -50,15 +50,15 @@ func algorithm(config Config, unMap unavailablesMap, initialServers []*Server) {
 		pools[poolIdx].rows[lastRow] += server.capacity
 		pools[poolIdx].weight += server.capacity
 	}
+}
 
-	// // Assign pool
-	// currentPool := 0
-	// for rPos := 0; rPos < len(rows); rPos++ {
-	// 	for sPos := 0; sPos < len(rows[rPos].servers); sPos++ {
-	// 		rows[rPos].servers[sPos].assignedPool = currentPool % config.nPools
-	// 		currentPool++
-	// 	}
-	// }
+func nextUnavailable(currentRow, currentSlot, lenRow int, unMap unavailablesMap) int {
+	for k := currentSlot; k < lenRow; k++ {
+		if ok := unMap[fmt.Sprintf("%d %d", currentRow, k)]; ok {
+			return k
+		}
+	}
+	return lenRow
 }
 
 func placeServer(startRow int, config Config, unMap unavailablesMap, server *Server, sPos int, rows []Row) int {
@@ -67,6 +67,15 @@ func placeServer(startRow int, config Config, unMap unavailablesMap, server *Ser
 			if j+server.size > config.slots {
 				break
 			}
+			fromHereToNextUnavailable := nextUnavailable(i, j, config.slots, unMap) - j
+			if server.size == fromHereToNextUnavailable {
+				assignRow(i, j, server, rows, unMap, config)
+				return i
+			}
+			if server.size+1 <= fromHereToNextUnavailable {
+				continue
+			}
+
 			canFit := true
 			for k := j; k < j+server.size && k < config.slots; k++ {
 				if ok := unMap[fmt.Sprintf("%d %d", i, k)]; ok {
@@ -78,18 +87,7 @@ func placeServer(startRow int, config Config, unMap unavailablesMap, server *Ser
 				continue
 			}
 
-			server.assignedRow = i
-			server.assignedSlot = j
-			server.assigned = true
-
-			// Slots unavailable
-			if rows[i].servers == nil {
-				rows[i].servers = make([]*Server, 0)
-			}
-			rows[i].servers = append(rows[i].servers, server)
-			for k := j; k < j+server.size && k < config.slots; k++ {
-				unMap[fmt.Sprintf("%d %d", i, k)] = true
-			}
+			assignRow(i, j, server, rows, unMap, config)
 			return i
 		}
 	}
@@ -109,22 +107,26 @@ func placeServer(startRow int, config Config, unMap unavailablesMap, server *Ser
 				continue
 			}
 
-			server.assignedRow = i
-			server.assignedSlot = j
-			server.assigned = true
-
-			// Slots unavailable
-			if rows[i].servers == nil {
-				rows[i].servers = make([]*Server, 0)
-			}
-			rows[i].servers = append(rows[i].servers, server)
-			for k := j; k < j+server.size && k < config.slots; k++ {
-				unMap[fmt.Sprintf("%d %d", i, k)] = true
-			}
+			assignRow(i, j, server, rows, unMap, config)
 			return i
 		}
 	}
 	return -1
+}
+
+func assignRow(i, j int, server *Server, rows []Row, unMap unavailablesMap, config Config) {
+	server.assignedRow = i
+	server.assignedSlot = j
+	server.assigned = true
+
+	// Slots unavailable
+	if rows[i].servers == nil {
+		rows[i].servers = make([]*Server, 0)
+	}
+	rows[i].servers = append(rows[i].servers, server)
+	for k := j; k < j+server.size && k < config.slots; k++ {
+		unMap[fmt.Sprintf("%d %d", i, k)] = true
+	}
 }
 
 func sortServers(initialServers []*Server) []*Server {
@@ -132,6 +134,7 @@ func sortServers(initialServers []*Server) []*Server {
 		a := initialServers[i]
 		b := initialServers[j]
 
+		// if a.size > b.size {
 		if a.capacity/a.size > b.capacity/b.size {
 			// if a.capacity > b.capacity {
 			return true
