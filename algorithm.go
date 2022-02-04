@@ -1,8 +1,22 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"sort"
+)
 
-func algorithm(config Config, unMap unavailablesMap, servers []*Server) int {
+func algorithm(config Config, unMap unavailablesMap, servers []*Server) {
+
+	sort.Slice(servers, func(i, j int) bool {
+		a := servers[i]
+		b := servers[j]
+
+		if a.capacity/a.size > b.capacity/b.size {
+			return true
+		}
+		return false
+	})
+
 	rows := make([]Row, config.rows)
 	// Assign Server
 	for sPos := 0; sPos < len(servers); sPos++ {
@@ -11,13 +25,13 @@ func algorithm(config Config, unMap unavailablesMap, servers []*Server) int {
 	}
 
 	// Assign pool
+	currentPool := 0
 	for rPos := 0; rPos < len(rows); rPos++ {
 		for sPos := 0; sPos < len(rows[rPos].servers); sPos++ {
-			rows[rPos].servers[sPos].assignedPool = sPos % config.nPools
+			rows[rPos].servers[sPos].assignedPool = currentPool % config.nPools
+			currentPool++
 		}
 	}
-
-	return 42
 }
 
 type Row struct {

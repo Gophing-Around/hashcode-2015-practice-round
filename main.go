@@ -22,19 +22,19 @@ func main() {
 		inputSet := readFile(fmt.Sprintf("./inputFiles/%s.in", fileName))
 
 		config, unMap, servers := buildInput(inputSet)
-		fmt.Printf("CONFIG %+v\nunMap: %+v\nservers %+v\n", config, unMap, servers)
-		for _, s := range servers {
-			fmt.Printf("Server: %+v\n", s)
-		}
+		// fmt.Printf("CONFIG %+v\nunMap: %+v\nservers %+v\n", config, unMap, servers)
+		// for _, s := range servers {
+		// 	fmt.Printf("Server: %+v\n", s)
+		// }
 		// printInputMetrics(input)
 
-		result := algorithm(config, unMap, servers)
+		algorithm(config, unMap, servers)
 
-		for _, s := range servers {
-			fmt.Printf("Server End: %+v\n", s)
-		}
+		// for _, s := range servers {
+		// 	fmt.Printf("Server End: %+v\n", s)
+		// }
 		output := buildOutput(servers)
-		printResultMetrics(result)
+		// printResultMetrics(servers)
 
 		ioutil.WriteFile(fmt.Sprintf("./result/%s.out", fileName), []byte(output), 0644)
 	}

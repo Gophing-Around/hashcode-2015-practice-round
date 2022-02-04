@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -17,6 +18,7 @@ type Server struct {
 	capacity int
 	size     int
 
+	id           int
 	assignedRow  int
 	assignedSlot int
 	assignedPool int
@@ -45,6 +47,7 @@ func buildInput(inputSet string) (Config, unavailablesMap, []*Server) {
 	for i := 1 + config.unavailable; i <= config.unavailable+config.nServers; i++ {
 		line := splitSpaces(lines[i])
 		servers = append(servers, &Server{
+			id:       i - 1 - config.unavailable,
 			size:     toint(line[0]),
 			capacity: toint(line[1]),
 		})
@@ -54,6 +57,16 @@ func buildInput(inputSet string) (Config, unavailablesMap, []*Server) {
 }
 
 func buildOutput(servers []*Server) string {
+	sort.Slice(servers, func(i, j int) bool {
+		a := servers[i]
+		b := servers[j]
+
+		if a.id < b.id {
+			return true
+		}
+		return false
+	})
+
 	result := ""
 	for _, server := range servers {
 		if server.assigned {
@@ -63,5 +76,5 @@ func buildOutput(servers []*Server) string {
 		}
 	}
 
-	return strings.Trim(result, "\n")
+	return strings.TrimRight(result, "\n")
 }
