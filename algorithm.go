@@ -75,6 +75,8 @@ func sortServers(initialServers []*Server) []*Server {
 		}
 		return false
 	})
+	// return initialServers
+	// initialServers = initialServers[:506]
 
 	part1 := make([]*Server, len(initialServers)/2+1)
 	part2 := make([]*Server, len(initialServers)/2)
