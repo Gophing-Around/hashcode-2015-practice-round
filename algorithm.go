@@ -132,8 +132,8 @@ func sortServers(initialServers []*Server) []*Server {
 		a := initialServers[i]
 		b := initialServers[j]
 
-		// if a.capacity/a.size > b.capacity/b.size {
-		if a.capacity > b.capacity {
+		if a.capacity/a.size > b.capacity/b.size {
+			// if a.capacity > b.capacity {
 			return true
 		}
 		return false
