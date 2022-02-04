@@ -9,6 +9,25 @@ type Row struct {
 	servers []*Server
 }
 
+type Pools []struct {
+	rows   map[int]int
+	weight int
+}
+
+func (p Pools) GetPool(lastRow int) int {
+	min := p[0].rows[lastRow]
+	idx := 0
+	for k, v := range p {
+		lastRowWeight := v.rows[lastRow]
+		if lastRowWeight < min || (lastRowWeight == min && v.weight < p[idx].weight) {
+			min = lastRowWeight
+			idx = k
+		}
+	}
+
+	return idx
+}
+
 func algorithm(config Config, unMap unavailablesMap, initialServers []*Server) {
 
 	servers := sortServers(initialServers)
@@ -17,12 +36,19 @@ func algorithm(config Config, unMap unavailablesMap, initialServers []*Server) {
 
 	// Assign Server
 	startRow := 0
+	pools := make(Pools, config.nPools)
 	for sPos := 0; sPos < len(servers); sPos++ {
 		server := servers[sPos]
 		lastRow := placeServer(startRow, config, unMap, server, sPos, rows)
 		startRow = (lastRow + 1) % config.rows
 
-		servers[sPos].assignedPool = sPos % config.nPools
+		poolIdx := pools.GetPool(lastRow)
+		servers[sPos].assignedPool = poolIdx
+		if pools[poolIdx].rows == nil {
+			pools[poolIdx].rows = make(map[int]int)
+		}
+		pools[poolIdx].rows[lastRow] += server.capacity
+		pools[poolIdx].weight += server.capacity
 	}
 
 	// // Assign pool
